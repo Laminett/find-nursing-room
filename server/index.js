@@ -8,5 +8,5 @@ app.get('/', (req, res) => {
 });
 
 app.listen(PORT, () => {
-    console.log('서버 실행중 on port ${PORT}');
+    console.log(`서버 실행중 on port ${PORT}`);
 });
