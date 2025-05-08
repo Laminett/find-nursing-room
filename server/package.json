@@ -1,0 +1,13 @@
+{
+    "name": "nursing-room-finder",
+    "version": "1.0.0",
+    "description": "수유실 API 연동 서버",
+    "main": "index.js",
+    "scripts": {
+      "start": "node index.js"
+    },
+    "dependencies": {
+      "dotenv": "^16.0.3",
+      "express": "^4.18.2"
+    }
+  }
