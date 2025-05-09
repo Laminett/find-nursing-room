@@ -47,7 +47,7 @@ export default function Home() {
         if (!location) return;
 
         const script = document.createElement('script');
-        script.src = "https://openapi.map.naver.com/openapi/v3/maps.js?ncpClientId=06abb1q2jy";
+        script.src = "https://openapi.map.naver.com/openapi/v3/maps.js?ncpClientId=ot2h6n9pgn";
         script.async = true;
         script.onload = () => {
             const map = new window.naver.maps.Map(naverMapRef.current, {
