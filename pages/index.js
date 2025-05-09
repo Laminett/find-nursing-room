@@ -5,6 +5,7 @@ export default function Home() {
     const kakaoMapRef = useRef(null);
     const naverMapRef = useRef(null);
     const [location, setLocation] = useState(null);
+    const [address, setAddress] = useState(null);
 
     // 위치 정보 받아오기
     useEffect(() => {
@@ -42,31 +43,29 @@ export default function Home() {
         document.head.appendChild(script);
     }, [location]);
 
-    // 네이버맵 로딩
     useEffect(() => {
         if (!location) return;
 
-        const script = document.createElement('script');
-        script.src = "https://openapi.map.naver.com/openapi/v3/maps.js?ncpClientId=ot2h6n9pgn";
-        script.async = true;
-        script.onload = () => {
-            const map = new window.naver.maps.Map(naverMapRef.current, {
-                center: new window.naver.maps.LatLng(location.lat, location.lng),
-                zoom: 15
-            });
-            new window.naver.maps.Marker({
-                map,
-                position: new window.naver.maps.LatLng(location.lat, location.lng),
-                title: '내 위치'
-            });
+        const fetchAddress = async () => {
+            try {
+                const res = await fetch(`/api/coord2address?lat=${location.lat}&lng=${location.lng}`);
+                const data = await res.json();
+                const found = data.documents?.[0];
+
+                setAddress(
+                    found?.road_address?.address_name || found?.address?.address_name || '주소없음'
+                );
+            } catch (err) {
+                console.log('주소 가져오기 실패', err);
+            }
         };
-        document.head.appendChild(script);
+        fetchAddress();
     }, [location]);
+
 
     return (
         <div style={{ display: 'flex', width: '100%', height: '100vh' }}>
-            <div ref={kakaoMapRef} style={{ width: '50%', height: '100%' }} />
-            <div ref={naverMapRef} style={{ width: '50%', height: '100%' }} />
+            <div ref={kakaoMapRef} style={{ width: '100%', height: '100%' }} />
         </div>
     );
 }
