@@ -4,8 +4,10 @@ import { useEffect, useRef, useState } from 'react';
 export default function Home() {
     const kakaoMapRef = useRef(null);
     const naverMapRef = useRef(null);
+    const [markers, setMarkers] = useState([]);
     const [location, setLocation] = useState(null);
     const [mapLoaded, setMapLoaded] = useState(false);
+    const polylineRef = useRef(null);
     const [address, setAddress] = useState(null);
 
     // 위치 정보 받아오기
@@ -89,6 +91,7 @@ export default function Home() {
                     lng: location.lng,
                     radius: 5000
                 }
+
                 const res = await fetch(`/api/nursing-rooms`, {
                     method: 'POST',
                     headers: {
@@ -96,37 +99,86 @@ export default function Home() {
                     },
                     body: JSON.stringify(requestData)
                 })
-                    .then(res => res.json())
-                    .then(data => {
-                        let openInfoWindow = null;
-                        data.nursingRoomSearchList.forEach(room => {
-                            const marker = new window.kakao.maps.Marker({
-                                map,
-                                position: new window.kakao.maps.LatLng(room.gpsLat, room.gpsLong),
-                                title: room.roomName
-                            });
 
-                            const infoWindow = new window.kakao.maps.InfoWindow({
-                                content: `<div style="padding:5px; font-size:13px;">
-                                            <strong>${room.roomName}</strong><br/>
-                                            ${room.location ?? ''}
-                                        </div>`
-                            });
+                const data = await res.json();
 
-                            window.kakao.maps.event.addListener(marker, 'click', () => {
-                                if (openInfoWindow) openInfoWindow.close();
-                                infoWindow.open(map, marker);
-                                openInfoWindow = infoWindow;
-                            });
-                        });
-                    })
-                    .catch(err => console.log('수유실 API 호출 실패', err));
+                const newMarkers = data.nursingRoomSearchList.map((room) => {
+                    const marker = new window.kakao.maps.Marker({
+                        map,
+                        position: new window.kakao.maps.LatLng(room.gpsLat, room.gpsLong),
+                        title: room.roomName
+                    });
+
+                    return { marker, room };
+                });
+
+                setMarkers(newMarkers);
             } catch (err) {
                 console.log('수유실 api 호출 실패');
             }
         };
         fetchNursingRooms();
     }, [location, mapLoaded]);
+
+    useEffect(() => {
+        if (!markers.length || !location || !kakaoMapRef.current) return;
+
+        const map = kakaoMapRef.current.__kakaoMapInstance;
+        let openInfoWindow = null;
+
+        markers.forEach(({ marker, room }) => {
+            const infoWindow = new window.kakao.maps.InfoWindow({
+                content: `<div style="padding:5px; font-size:13px;">
+                                            <strong>${room.roomName}</strong><br/>
+                                            ${room.location ?? ''}
+                                        </div>`
+            });
+
+            window.kakao.maps.event.addListener(marker, 'click', async () => {
+                if (openInfoWindow) openInfoWindow.close();
+                infoWindow.open(map, marker);
+                openInfoWindow = infoWindow;
+
+                try {
+                    const res = await fetch(`/api/directions`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            origin: { x: location.lng, y: location.lat },
+                            destination: { x: room.gpsLong, y: room.gpsLat }
+                        })
+                    });
+
+                    const data = await res.json();
+
+                    const roads = data.routes?.[0]?.sections?.[0]?.roads || [];
+                    const path = [];
+
+                    roads.forEach((road) => {
+                        const vertexes = road.vertexes;
+                        for (let i = 0; i < vertexes.length; i += 2) {
+                            path.push(new window.kakao.maps.LatLng(vertexes[i + 1], vertexes[i]));
+                        }
+                    })
+
+                    if (polylineRef.current) polylineRef.current.setMap(null);
+
+                    const polyline = new window.kakao.maps.Polyline({
+                        map,
+                        path,
+                        strokeWeight: 5,
+                        strokeColor: '#007AFF',
+                        strokeOpacity: 0.9,
+                        strokeStyle: 'solid'
+                    });
+                    polyline.setMap(map);
+                    polylineRef.current = polyline;
+                } catch (err) {
+                    console.log('길찾기 API 실패', err);
+                }
+            });
+        });
+    }, [markers, location]);
 
     return (
         <div style={{ display: 'flex', width: '100%', height: '100vh' }}>
