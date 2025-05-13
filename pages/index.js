@@ -132,7 +132,7 @@ export default function Home() {
                 content: `<div style="padding:5px; font-size:13px; max-width: 200px;">
                                             <strong>${room.roomName}</strong><br/>
                                             ${room.location ?? ''}<br/>
-                <button onclick="location.href='kakaonavi://navigate?name=${encodeURIComponent(room.roomName)}&x=${room.gpsLong}&y=${room.gpsLat}'" 
+                <button onclick="location.href='kakaonavi://navigate?name=${encodeURIComponent(room.roomName)}&x=${Number(room.gpsLong)}&y=${Number(room.gpsLat)}'" 
                     style="margin-top:5px;padding:4px 8px;font-size:12px;border:none;background:#007AFF;color:#fff;border-radius:4px;cursor:pointer;">
                 카카오내비로 길안내
             </button>
