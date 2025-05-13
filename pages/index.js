@@ -128,15 +128,13 @@ export default function Home() {
         let openInfoWindow = null;
 
         markers.forEach(({ marker, room }) => {
-            const encodedName = encodeURIComponent(room.roomName || '목적지');
-            const deepLink = `kakaonavi://navigate?name=${encodedName}&x=${Number(room.gpsLong)}&y=${Number(room.gpsLat)}&coordType=wgs84`;
 
             const content = document.createElement('div');
             content.innerHTML = `
             <div style="padding:5px; font-size:13px;">
                 <strong>${room.roomName}</strong><br/>
                 ${room.location ?? ''}<br/>
-                <a href="${deepLink}" target="_blank" rel="noopener noreferrer" style="color:blue; text-decoration:underline;">카카오내비로 열기</a>
+                <button onclick="navigateTo(${room.gpsLat}, ${room.gpsLong}, '${room.roomName}')">안내하기</button>
             </div>`;
 
             const infoWindow = new window.kakao.maps.InfoWindow({ content });
@@ -199,6 +197,17 @@ export default function Home() {
         });
     }, [markers, location]);
 
+    useEffect(() => {
+        window.navigateTo = (lat, lng, name) => {
+            if (!window.Kakao) return;
+            window.Kakao.Navi.start({
+                name,
+                x: lng,
+                y: lat,
+                coordType: 'wgs84'
+            });
+        };
+    }, []);
     return (
         <div style={{ display: 'flex', width: '100%', height: '100vh' }}>
             <div ref={kakaoMapRef} style={{ width: '100%', height: '100%' }} />
