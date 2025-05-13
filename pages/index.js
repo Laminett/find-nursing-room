@@ -5,6 +5,7 @@ export default function Home() {
     const kakaoMapRef = useRef(null);
     const naverMapRef = useRef(null);
     const [location, setLocation] = useState(null);
+    const [mapLoaded, setMapLoaded] = useState(false);
     const [address, setAddress] = useState(null);
 
     // 위치 정보 받아오기
@@ -33,35 +34,99 @@ export default function Home() {
                     center: new window.kakao.maps.LatLng(location.lat, location.lng),
                     level: 3
                 });
+
+                kakaoMapRef.current.__kakaoMapInstance = map;
+
+                const markerImage = new window.kakao.maps.MarkerImage(
+                    'https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/markerStar.png',
+                    new window.kakao.maps.Size(23, 35)
+                );
+
                 new window.kakao.maps.Marker({
                     map,
                     position: new window.kakao.maps.LatLng(location.lat, location.lng),
-                    title: '내 위치'
+                    title: '내 위치',
+                    image: markerImage
                 });
+
+                setMapLoaded(true);
             });
         };
         document.head.appendChild(script);
     }, [location]);
 
+    // geo position 기반으로 주소값 추출
+    // useEffect(() => {
+    //     if (!location) return;
+
+    //     const fetchAddress = async () => {
+    //         try {
+    //             const res = await fetch(`/api/coord2address?lat=${location.lat}&lng=${location.lng}`);
+    //             const data = await res.json();
+    //             const found = data.documents?.[0];
+
+    //             setAddress(
+    //                 found?.road_address?.address_name || found?.address?.address_name || '주소없음'
+    //             );
+    //         } catch (err) {
+    //             console.log('주소 가져오기 실패', err);
+    //         }
+    //     };
+    //     fetchAddress();
+    // }, [location]);
+
+    // 수유실 API 호출
     useEffect(() => {
-        if (!location) return;
+        if (!location || !mapLoaded || !kakaoMapRef.current) return;
 
-        const fetchAddress = async () => {
+        const map = kakaoMapRef.current.__kakaoMapInstance;
+        if (!map) return;
+
+        const fetchNursingRooms = async () => {
             try {
-                const res = await fetch(`/api/coord2address?lat=${location.lat}&lng=${location.lng}`);
-                const data = await res.json();
-                const found = data.documents?.[0];
+                const requestData = {
+                    lat: location.lat,
+                    lng: location.lng,
+                    radius: 5000
+                }
+                const res = await fetch(`/api/nursing-rooms`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(requestData)
+                })
+                    .then(res => res.json())
+                    .then(data => {
+                        let openInfoWindow = null;
+                        data.nursingRoomSearchList.forEach(room => {
+                            const marker = new window.kakao.maps.Marker({
+                                map,
+                                position: new window.kakao.maps.LatLng(room.gpsLat, room.gpsLong),
+                                title: room.roomName
+                            });
 
-                setAddress(
-                    found?.road_address?.address_name || found?.address?.address_name || '주소없음'
-                );
+                            const infoWindow = new window.kakao.maps.InfoWindow({
+                                content: `<div style="padding:5px; font-size:13px;">
+                                            <strong>${room.roomName}</strong><br/>
+                                            ${room.location ?? ''}
+                                        </div>`
+                            });
+
+                            window.kakao.maps.event.addListener(marker, 'click', () => {
+                                if (openInfoWindow) openInfoWindow.close();
+                                infoWindow.open(map, marker);
+                                openInfoWindow = infoWindow;
+                            });
+                        });
+                    })
+                    .catch(err => console.log('수유실 API 호출 실패', err));
             } catch (err) {
-                console.log('주소 가져오기 실패', err);
+                console.log('수유실 api 호출 실패');
             }
         };
-        fetchAddress();
-    }, [location]);
-
+        fetchNursingRooms();
+    }, [location, mapLoaded]);
 
     return (
         <div style={{ display: 'flex', width: '100%', height: '100vh' }}>
