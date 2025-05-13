@@ -134,22 +134,25 @@ export default function Home() {
                 <div style="padding:5px; font-size:13px;">
                     <strong>${room.roomName}</strong><br/>
                     ${room.location ?? ''}<br/>
+                    <button id="navigate-btn-${room.roomNo}" style="margin-top:5px;">안내하기</button>
                 </div>`;
 
-            const button = document.createElement('button');
-            button.innerText = '카카오내비 안내';
-            button.style.cssText = 'margin-top:5px;padding:4px 8px;font-size:12px;background:#007AFF;color:white;border:none;border-radius:4px;cursor:pointer';
-            button.onclick = () => {
-                if (window.Kakao && window.Kakao.Navi) {
-                    window.Kakao.Navi.start({
-                        name: room.roomName,
-                        x: Number(room.gpsLong),
-                        y: Number(room.gpsLat),
-                        coordType: 'wgs84'
-                    });
-                }
-            };
-            content.appendChild(button);
+            // const button = document.createElement('button');
+            // button.innerText = '카카오내비 안내';
+            // button.style.cssText = 'margin-top:5px;padding:4px 8px;font-size:12px;background:#007AFF;color:white;border:none;border-radius:4px;cursor:pointer';
+            // button.onclick = () => {
+            //     if (window.Kakao && window.Kakao.Navi) {
+            //         console.log(window.Kakao);
+            //         console.log(window.Kakao.Navi);
+            //         window.Kakao.Navi.start({
+            //             name: room.roomName,
+            //             x: Number(room.gpsLong),
+            //             y: Number(room.gpsLat),
+            //             coordType: 'wgs84'
+            //         });
+            //     }
+            // };
+            // content.appendChild(button);
 
             const infoWindow = new window.kakao.maps.InfoWindow({ content });
 
@@ -196,7 +199,23 @@ export default function Home() {
                     polyline.setMap(map);
                     polylineRef.current = polyline;
 
-                    // setSelectedDestination(room);
+                    setTimeout(() => {
+                        const btn = document.getElementById(`navigate-btn-${room.roomNo}`)
+                        if (btn) {
+                            btn.addEventListener('click', () => {
+                                if (window.Kakao && window.Kakao.Navi) {
+                                    window.Kakao.Navi.start({
+                                        name: room.roomName,
+                                        x: Number(room.gpsLong),
+                                        y: Number(room.gpsLat),
+                                        coordType: 'wgs84'
+                                    });
+                                } else {
+                                    alert('카카오내비를 사용할 수 없습니다.');
+                                }
+                            });
+                        }
+                    }, 100);
                 } catch (err) {
                     console.log('길찾기 API 실패', err);
                 }
@@ -215,16 +234,6 @@ export default function Home() {
             }
         };
         document.head.appendChild(script);
-
-        window.navigateTo = (lat, lng, name) => {
-            if (!window.Kakao) return;
-            window.Kakao.Navi.start({
-                name,
-                x: Number(lng),
-                y: Number(lat),
-                coordType: 'wgs84'
-            });
-        };
     }, []);
 
     return (
