@@ -7,7 +7,7 @@ export default async function handler(req, res) {
 
     try {
         const url = `https://apis-navi.kakaomobility.com/v1/directions?origin=${Number(origin.x)},${Number(origin.y)}&destination=${Number(destination.x)},${Number(destination.y)}&priority=RECOMMEND&car_fuel=GASOLINE&car_hipass=true&alternatives=true&road_details=true`
-        console.log(url);
+
         const kakaoRes = await fetch(url, {
             method: 'GET',
             headers: {
