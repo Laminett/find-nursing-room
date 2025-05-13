@@ -131,23 +131,27 @@ export default function Home() {
 
             const content = document.createElement('div');
             content.innerHTML = `
-            <div style="padding:5px; font-size:13px;">
-                <strong>${room.roomName}</strong><br/>
-                ${room.location ?? ''}<br/>
-                <button onclick="navigateTo(${room.gpsLat}, ${room.gpsLong}, '${room.roomName}')">안내하기</button>
-            </div>`;
+                <div style="padding:5px; font-size:13px;">
+                    <strong>${room.roomName}</strong><br/>
+                    ${room.location ?? ''}<br/>
+                </div>`;
+
+            const button = document.createElement('button');
+            button.innerText = '카카오내비 안내';
+            button.style.cssText = 'margin-top:5px;padding:4px 8px;font-size:12px;background:#007AFF;color:white;border:none;border-radius:4px;cursor:pointer';
+            button.onclick = () => {
+                if (window.Kakao && window.Kakao.Navi) {
+                    window.Kakao.Navi.start({
+                        name: room.roomName,
+                        x: Number(room.gpsLong),
+                        y: Number(room.gpsLat),
+                        coordType: 'wgs84'
+                    });
+                }
+            };
+            content.appendChild(button);
 
             const infoWindow = new window.kakao.maps.InfoWindow({ content });
-            // const infoWindow = new window.kakao.maps.InfoWindow({
-            //     content: `<div style="padding:5px; font-size:13px; max-width: 200px;">
-            //                                 <strong>${room.roomName}</strong><br/>
-            //                                 ${room.location ?? ''}<br/>
-            //     <button onclick="location.href='kakaonavi://navigate?name=${encodeURIComponent(room.roomName)}&x=${Number(room.gpsLong)}&y=${Number(room.gpsLat)}'" 
-            //         style="margin-top:5px;padding:4px 8px;font-size:12px;border:none;background:#007AFF;color:#fff;border-radius:4px;cursor:pointer;">
-            //     카카오내비로 길안내
-            // </button>
-            //                             </div>`
-            // });
 
             window.kakao.maps.event.addListener(marker, 'click', async () => {
                 if (openInfoWindow) openInfoWindow.close();
@@ -176,7 +180,10 @@ export default function Home() {
                         }
                     })
 
-                    if (polylineRef.current) polylineRef.current.setMap(null);
+                    if (polylineRef.current) {
+                        polylineRef.current.setMap(null);
+                        polylineRef.current = null;
+                    }
 
                     const polyline = new window.kakao.maps.Polyline({
                         map,
@@ -197,17 +204,29 @@ export default function Home() {
         });
     }, [markers, location]);
 
+    // 카카오 내비 SDK 로드
     useEffect(() => {
+        const script = document.createElement('script');
+        script.src = `https://t1.kakaocdn.net/kakao_js_sdk/2.4.0/kakao.min.js`;
+        script.async = true;
+        script.onload = () => {
+            if (window.Kakao && !window.Kakao.isInitialized()) {
+                window.Kakao.init('f8d5e95a983fc9b3d4077bcddf5f3d13');
+            }
+        };
+        document.head.appendChild(script);
+
         window.navigateTo = (lat, lng, name) => {
             if (!window.Kakao) return;
             window.Kakao.Navi.start({
                 name,
-                x: lng,
-                y: lat,
+                x: Number(lng),
+                y: Number(lat),
                 coordType: 'wgs84'
             });
         };
     }, []);
+
     return (
         <div style={{ display: 'flex', width: '100%', height: '100vh' }}>
             <div ref={kakaoMapRef} style={{ width: '100%', height: '100%' }} />
