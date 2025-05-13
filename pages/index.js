@@ -128,16 +128,28 @@ export default function Home() {
         let openInfoWindow = null;
 
         markers.forEach(({ marker, room }) => {
-            const infoWindow = new window.kakao.maps.InfoWindow({
-                content: `<div style="padding:5px; font-size:13px; max-width: 200px;">
-                                            <strong>${room.roomName}</strong><br/>
-                                            ${room.location ?? ''}<br/>
-                <button onclick="location.href='kakaonavi://navigate?name=${encodeURIComponent(room.roomName)}&x=${Number(room.gpsLong)}&y=${Number(room.gpsLat)}'" 
-                    style="margin-top:5px;padding:4px 8px;font-size:12px;border:none;background:#007AFF;color:#fff;border-radius:4px;cursor:pointer;">
-                카카오내비로 길안내
-            </button>
-                                        </div>`
-            });
+            const encodedName = encodeURIComponent(room.roomName || '목적지');
+            const deepLink = `kakaonavi://navigate?name=${encodedName}&x=${Number(room.gpsLong)}&y=${Number(room.gpsLat)}&coordType=wgs84`;
+
+            const content = document.createElement('div');
+            content.innerHTML = `
+            <div style="padding:5px; font-size:13px;">
+                <strong>${room.roomName}</strong><br/>
+                ${room.location ?? ''}<br/>
+                <a href="${deepLink}" target="_blank" rel="noopener noreferrer" style="color:blue; text-decoration:underline;">카카오내비로 열기</a>
+            </div>`;
+
+            const infoWindow = new window.kakao.maps.InfoWindow({ content });
+            // const infoWindow = new window.kakao.maps.InfoWindow({
+            //     content: `<div style="padding:5px; font-size:13px; max-width: 200px;">
+            //                                 <strong>${room.roomName}</strong><br/>
+            //                                 ${room.location ?? ''}<br/>
+            //     <button onclick="location.href='kakaonavi://navigate?name=${encodeURIComponent(room.roomName)}&x=${Number(room.gpsLong)}&y=${Number(room.gpsLat)}'" 
+            //         style="margin-top:5px;padding:4px 8px;font-size:12px;border:none;background:#007AFF;color:#fff;border-radius:4px;cursor:pointer;">
+            //     카카오내비로 길안내
+            // </button>
+            //                             </div>`
+            // });
 
             window.kakao.maps.event.addListener(marker, 'click', async () => {
                 if (openInfoWindow) openInfoWindow.close();
