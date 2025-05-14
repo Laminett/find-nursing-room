@@ -1,7 +1,7 @@
 // pages/index.js - 카카오 지도 + 네이버 지도 동시에 표시
 import { useEffect, useRef, useState } from 'react';
-import { calculateDistance, findClosetLocation } from '../utils/distance';
-import { calculateBounds, fitMapToBounds } from '../utils/map';
+import { findClosetLocation } from '../utils/distance';
+import { calculateBounds, fitMapToBounds, calculateZoomLevel } from '../utils/map';
 
 export default function Home() {
     const kakaoMapRef = useRef(null);
@@ -32,7 +32,7 @@ export default function Home() {
         if (!location) return;
 
         const script = document.createElement('script');
-        script.src = `//dapi.kakao.com/v2/maps/sdk.js?appkey=f8d5e95a983fc9b3d4077bcddf5f3d13&autoload=false`;
+        script.src = `//dapi.kakao.com/v2/maps/sdk.js?appkey=${process.env.NEXT_PUBLIC_KAKAO_JS_KEY}&autoload=false`;
         script.onload = () => {
             window.kakao.maps.load(() => {
                 const map = new window.kakao.maps.Map(kakaoMapRef.current, {
@@ -201,7 +201,7 @@ export default function Home() {
         script.async = true;
         script.onload = () => {
             if (window.Kakao && !window.Kakao.isInitialized()) {
-                window.Kakao.init('f8d5e95a983fc9b3d4077bcddf5f3d13');
+                window.Kakao.init(`${process.env.NEXT_PUBLIC_KAKAO_JS_KEY}`);
             }
         };
         document.head.appendChild(script);
