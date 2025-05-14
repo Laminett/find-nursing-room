@@ -13,6 +13,8 @@ export default function Home() {
 
     // 위치 정보 받아오기
     useEffect(() => {
+        const defaultGeoLocation = { lat: 37.540318, lng: 127.013213 };
+
         navigator.geolocation.getCurrentPosition(
             (pos) => {
                 const lat = pos.coords.latitude;
@@ -20,7 +22,7 @@ export default function Home() {
                 setLocation({ lat, lng });
             },
             () => {
-                alert('위치 정보를 가져올 수 없습니다.');
+                setLocation({ lat, lng });
             }
         );
     }, []);
