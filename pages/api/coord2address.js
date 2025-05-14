@@ -1,5 +1,3 @@
-// ✅ 1. 백엔드 프록시 API - /pages/api/coord2address.js
-
 export default async function handler(req, res) {
     const { lat, lng } = req.query;
 

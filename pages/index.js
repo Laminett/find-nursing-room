@@ -8,8 +8,6 @@ export default function Home() {
     const [location, setLocation] = useState(null);
     const [mapLoaded, setMapLoaded] = useState(false);
     const polylineRef = useRef(null);
-    const [selectedDestination, setSelectedDestination] = useState(null);
-    const [address, setAddress] = useState(null);
 
     // 위치 정보 받아오기
     useEffect(() => {
@@ -59,26 +57,6 @@ export default function Home() {
         };
         document.head.appendChild(script);
     }, [location]);
-
-    // geo position 기반으로 주소값 추출
-    // useEffect(() => {
-    //     if (!location) return;
-
-    //     const fetchAddress = async () => {
-    //         try {
-    //             const res = await fetch(`/api/coord2address?lat=${location.lat}&lng=${location.lng}`);
-    //             const data = await res.json();
-    //             const found = data.documents?.[0];
-
-    //             setAddress(
-    //                 found?.road_address?.address_name || found?.address?.address_name || '주소없음'
-    //             );
-    //         } catch (err) {
-    //             console.log('주소 가져오기 실패', err);
-    //         }
-    //     };
-    //     fetchAddress();
-    // }, [location]);
 
     // 수유실 API 호출
     useEffect(() => {
@@ -138,23 +116,6 @@ export default function Home() {
                     ${room.location ?? ''}<br/>
                     <button id="navigate-btn-${room.roomNo}" style="margin-top:5px;">안내하기</button>
                 </div>`;
-
-            // const button = document.createElement('button');
-            // button.innerText = '카카오내비 안내';
-            // button.style.cssText = 'margin-top:5px;padding:4px 8px;font-size:12px;background:#007AFF;color:white;border:none;border-radius:4px;cursor:pointer';
-            // button.onclick = () => {
-            //     if (window.Kakao && window.Kakao.Navi) {
-            //         console.log(window.Kakao);
-            //         console.log(window.Kakao.Navi);
-            //         window.Kakao.Navi.start({
-            //             name: room.roomName,
-            //             x: Number(room.gpsLong),
-            //             y: Number(room.gpsLat),
-            //             coordType: 'wgs84'
-            //         });
-            //     }
-            // };
-            // content.appendChild(button);
 
             const infoWindow = new window.kakao.maps.InfoWindow({ content });
 
@@ -243,32 +204,5 @@ export default function Home() {
             <div ref={kakaoMapRef} style={{ width: '100%', height: '100%' }} />
         </div>
     );
-    // return (
-    //     <div style={{ position: 'relative', width: '100%', height: '100vh' }}>
-    //         <div ref={kakaoMapRef} style={{ width: '100%', height: '100%' }} />
-    //         {selectedDestination && (
-    //             <button
-    //                 onClick={() => {
-    //                     const { gpsLat, gpsLong, roomName } = selectedDestination;
-    //                     window.location.href = `kakaonavi://navigate?coord_type=wgs84&dest_lat=${gpsLat}&dest_lng=${gpsLong}&dest_name=${encodeURIComponent(roomName)}`;
-    //                 }}
-    //                 style={{
-    //                     position: 'absolute',
-    //                     bottom: '20px',
-    //                     left: '50%',
-    //                     transform: 'translateX(-50%)',
-    //                     padding: '10px 20px',
-    //                     fontSize: '14px',
-    //                     zIndex: 999,
-    //                     background: '#FAE100',
-    //                     border: 'none',
-    //                     borderRadius: '8px',
-    //                     cursor: 'pointer'
-    //                 }}
-    //             >
-    //                 카카오내비로 길안내
-    //             </button>
-    //         )}
-    //     </div>
-    // );
+
 }
