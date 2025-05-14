@@ -1,5 +1,7 @@
 // pages/index.js - 카카오 지도 + 네이버 지도 동시에 표시
 import { useEffect, useRef, useState } from 'react';
+import { calculateDistance, findClosetLocation } from '../utils/distance';
+import { calculateBounds, fitMapToBounds } from '../utils/map';
 
 export default function Home() {
     const kakaoMapRef = useRef(null);
@@ -82,6 +84,12 @@ export default function Home() {
                 })
 
                 const data = await res.json();
+
+                const closest = findClosetLocation(location, data.nursingRoomSearchList);
+                if (closest) {
+                    const bounds = calculateBounds(location, { lat: closest.gpsLat, lng: closest.gpsLong });
+                    fitMapToBounds(map, bounds);
+                }
 
                 const newMarkers = data.nursingRoomSearchList.map((room) => {
                     const marker = new window.kakao.maps.Marker({
