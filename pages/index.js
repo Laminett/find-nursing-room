@@ -117,10 +117,16 @@ export default function Home() {
                         </div>`;
 
                     if (!infoWindowRef.current) {
-                        infoWindowRef.current = new window.kakao.maps.InfoWindow();
+                        infoWindowRef.current = new window.kakao.maps.InfoWindow({
+                            removable: true
+                        });
                     }
                     infoWindowRef.current.setContent(content);
-                    infoWindowRef.current.open(map, marker);
+                    infoWindowRef.current.setPosition(new window.kakao.maps.LatLng(
+                        room.gpsLat + 0.0003,
+                        room.gpsLong
+                    ));
+                    infoWindowRef.current.open(map);
                 };
 
                 window.kakao.maps.event.addListener(marker, 'click', clickListener);
