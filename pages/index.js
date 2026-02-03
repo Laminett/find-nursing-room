@@ -15,6 +15,7 @@ export default function Home() {
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState(null);
     const [locationDenied, setLocationDenied] = useState(false);
+    const [selectedRoom, setSelectedRoom] = useState(null);
     const markerPoolRef = useRef([]);
     const markerListenersRef = useRef(new Set());
     const infoWindowRef = useRef(null);
@@ -106,63 +107,7 @@ export default function Home() {
                 bounds.extend(position);
 
                 const clickListener = () => {
-                    const mapInstance = kakaoMapRef.current?.__kakaoMapInstance;
-                    if (!mapInstance) return;
-
-                    // 기존 오버레이 닫기
-                    if (infoWindowRef.current) {
-                        infoWindowRef.current.setMap(null);
-                    }
-
-                    const content = document.createElement('div');
-                    content.innerHTML = `
-                        <div style="
-                            position: relative;
-                            padding: 12px 15px;
-                            background: white;
-                            border-radius: 8px;
-                            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
-                            font-size: 13px;
-                            min-width: 150px;
-                            transform: translateY(-100%);
-                            margin-bottom: 15px;
-                        ">
-                            <button onclick="this.parentElement.parentElement.remove()" style="
-                                position: absolute;
-                                top: 5px;
-                                right: 5px;
-                                background: none;
-                                border: none;
-                                font-size: 16px;
-                                cursor: pointer;
-                                color: #999;
-                            ">×</button>
-                            <strong>${room.roomName}</strong><br/>
-                            <span style="color:#666;">${room.location ?? ''}</span><br/>
-                            <button onclick="window.__handleNavigate(${JSON.stringify(room).replace(/"/g, '&quot;')})"
-                                style="margin-top:10px; padding:8px 15px; background:#fee500; border:none; border-radius:4px; cursor:pointer; width:100%;">
-                                길안내
-                            </button>
-                            <div style="
-                                position: absolute;
-                                bottom: -8px;
-                                left: 50%;
-                                transform: translateX(-50%);
-                                width: 0;
-                                height: 0;
-                                border-left: 8px solid transparent;
-                                border-right: 8px solid transparent;
-                                border-top: 8px solid white;
-                            "></div>
-                        </div>`;
-
-                    infoWindowRef.current = new window.kakao.maps.CustomOverlay({
-                        position: position,
-                        content: content,
-                        yAnchor: 1
-                    });
-
-                    infoWindowRef.current.setMap(mapInstance);
+                    setSelectedRoom(room);
                 };
 
                 window.kakao.maps.event.addListener(marker, 'click', clickListener);
@@ -375,6 +320,56 @@ export default function Home() {
                     개인정보 처리방침
                 </a>
             </div>
+
+            {/* 하단 정보 패널 */}
+            {selectedRoom && (
+                <div style={{
+                    background: 'white',
+                    borderTop: '1px solid #ddd',
+                    padding: '15px 20px',
+                    boxShadow: '0 -2px 10px rgba(0,0,0,0.1)'
+                }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                        <div style={{ flex: 1 }}>
+                            <h3 style={{ margin: '0 0 5px 0', fontSize: '16px', color: '#333' }}>
+                                {selectedRoom.roomName}
+                            </h3>
+                            <p style={{ margin: 0, fontSize: '13px', color: '#666' }}>
+                                {selectedRoom.location || '주소 정보 없음'}
+                            </p>
+                        </div>
+                        <button
+                            onClick={() => setSelectedRoom(null)}
+                            style={{
+                                background: 'none',
+                                border: 'none',
+                                fontSize: '20px',
+                                color: '#999',
+                                cursor: 'pointer',
+                                padding: '0 0 0 10px'
+                            }}
+                        >
+                            ×
+                        </button>
+                    </div>
+                    <button
+                        onClick={() => handleNavigate(selectedRoom)}
+                        style={{
+                            marginTop: '12px',
+                            width: '100%',
+                            padding: '12px',
+                            background: '#fee500',
+                            border: 'none',
+                            borderRadius: '8px',
+                            fontSize: '15px',
+                            fontWeight: 'bold',
+                            cursor: 'pointer'
+                        }}
+                    >
+                        카카오내비로 길안내
+                    </button>
+                </div>
+            )}
 
             {/* 하단 광고 배너 */}
             <div style={{
