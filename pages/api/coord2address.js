@@ -4,7 +4,7 @@ export default async function handler(req, res) {
     if (!lat || !lng) {
         return res.status(400).json({ error: 'Missing lat or lng' });
     }
-    debugger;
+
     try {
         const kakaoRes = await fetch(
             `https://dapi.kakao.com/v2/local/geo/coord2address.json?x=${lng}&y=${lat}`,
