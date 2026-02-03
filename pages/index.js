@@ -7,12 +7,29 @@ export default function Home() {
     const kakaoMapRef = useRef(null);
     const [location, setLocation] = useState(null);
     const [mapLoaded, setMapLoaded] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState(null);
+    const [locationDenied, setLocationDenied] = useState(false);
     const markerPoolRef = useRef([]);
+    const markerListenersRef = useRef(new Set());
     const infoWindowRef = useRef(null);
     const clustererRef = useRef(null);
     const isFirstFetchRef = useRef(true);
     const debounceRef = useRef(null);
     const lastRequestedCenterRef = useRef(null);
+
+    const handleNavigate = (room) => {
+        if (window.Kakao?.Navi) {
+            window.Kakao.Navi.start({
+                name: room.roomName,
+                x: Number(room.gpsLong),
+                y: Number(room.gpsLat),
+                coordType: 'wgs84'
+            });
+        } else {
+            alert('카카오내비를 사용할 수 없습니다.');
+        }
+    };
 
     const fetchNursingRooms = async (center, shouldAdjustBounds = false) => {
         const map = kakaoMapRef.current?.__kakaoMapInstance;
@@ -25,6 +42,8 @@ export default function Home() {
         };
 
         lastRequestedCenterRef.current = `${center.getLat().toFixed(5)}_${center.getLng().toFixed(5)}`;
+        setIsLoading(true);
+        setError(null);
 
         try {
             const res = await fetch('/api/nursing-rooms', {
@@ -32,6 +51,10 @@ export default function Home() {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(requestData)
             });
+
+            if (!res.ok) {
+                throw new Error('서버 오류가 발생했습니다.');
+            }
 
             const data = await res.json();
             const currentCenter = map.getCenter();
@@ -41,9 +64,20 @@ export default function Home() {
                 return;
             }
 
-            const rooms = data.nursingRoomSearchList;
+            const rooms = data.nursingRoomSearchList || [];
+
+            if (rooms.length === 0) {
+                setError('주변에 수유실이 없습니다. 지도를 이동해보세요.');
+                setIsLoading(false);
+                return;
+            }
 
             if (clustererRef.current) clustererRef.current.clear();
+
+            markerListenersRef.current.forEach(({ marker, listener }) => {
+                window.kakao.maps.event.removeListener(marker, 'click', listener);
+            });
+            markerListenersRef.current.clear();
 
             const bounds = new window.kakao.maps.LatLngBounds();
             const markers = rooms.map((room, i) => {
@@ -56,15 +90,18 @@ export default function Home() {
                 }
 
                 marker.setPosition(position);
-                marker.setMap(null); // 클러스터러에 의해 표시됨
+                marker.setMap(null);
                 bounds.extend(position);
 
-                window.kakao.maps.event.addListener(marker, 'click', () => {
+                const clickListener = () => {
                     const content = `
-                        <div style="padding:5px; font-size:13px;">
+                        <div style="padding:10px; font-size:13px; min-width:150px;">
                             <strong>${room.roomName}</strong><br/>
                             ${room.location ?? ''}<br/>
-                            <button id="navigate-btn-${room.roomNo}" style="margin-top:5px;">안내하기</button>
+                            <button onclick="window.__handleNavigate(${JSON.stringify(room).replace(/"/g, '&quot;')})"
+                                style="margin-top:8px; padding:5px 10px; background:#fee500; border:none; border-radius:4px; cursor:pointer;">
+                                길안내
+                            </button>
                         </div>`;
 
                     if (!infoWindowRef.current) {
@@ -72,25 +109,10 @@ export default function Home() {
                     }
                     infoWindowRef.current.setContent(content);
                     infoWindowRef.current.open(map, marker);
+                };
 
-                    setTimeout(() => {
-                        const btn = document.getElementById(`navigate-btn-${room.roomNo}`);
-                        if (btn) {
-                            btn.addEventListener('click', () => {
-                                if (window.Kakao?.Navi) {
-                                    window.Kakao.Navi.start({
-                                        name: room.roomName,
-                                        x: Number(room.gpsLong),
-                                        y: Number(room.gpsLat),
-                                        coordType: 'wgs84'
-                                    });
-                                } else {
-                                    alert('카카오내비를 사용할 수 없습니다.');
-                                }
-                            });
-                        }
-                    }, 100);
-                });
+                window.kakao.maps.event.addListener(marker, 'click', clickListener);
+                markerListenersRef.current.add({ marker, listener: clickListener });
 
                 return marker;
             });
@@ -106,26 +128,35 @@ export default function Home() {
                 );
 
                 if (closest) {
-                    const bounds = new window.kakao.maps.LatLngBounds();
-
+                    const adjustBounds = new window.kakao.maps.LatLngBounds();
                     const currentPos = new window.kakao.maps.LatLng(requestData.lat, requestData.lng);
                     const closestPos = new window.kakao.maps.LatLng(closest.gpsLat, closest.gpsLong);
 
-                    bounds.extend(currentPos);
-                    bounds.extend(closestPos);
-
-                    map.setBounds(bounds); // 👈 여기서 fitMapToBounds 대신 setBounds를 직접 써도 됩니다
+                    adjustBounds.extend(currentPos);
+                    adjustBounds.extend(closestPos);
+                    map.setBounds(adjustBounds);
                 }
             }
         } catch (err) {
             console.error('수유실 api 호출 실패', err);
+            setError('수유실 정보를 불러오는데 실패했습니다. 다시 시도해주세요.');
+        } finally {
+            setIsLoading(false);
         }
     };
 
     useEffect(() => {
+        window.__handleNavigate = (room) => handleNavigate(room);
+        return () => { delete window.__handleNavigate; };
+    }, []);
+
+    useEffect(() => {
         navigator.geolocation.getCurrentPosition(
             (pos) => setLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
-            () => setLocation({ lat: 37.540318, lng: 127.013213 })
+            (err) => {
+                setLocationDenied(true);
+                setLocation({ lat: 37.540318, lng: 127.013213 });
+            }
         );
     }, []);
 
@@ -212,5 +243,82 @@ export default function Home() {
         document.head.appendChild(script);
     }, []);
 
-    return <div ref={kakaoMapRef} style={{ width: '100%', height: '100vh' }} />;
+    return (
+        <div style={{ position: 'relative', width: '100%', height: '100dvh', minHeight: '-webkit-fill-available' }}>
+            <div ref={kakaoMapRef} style={{ width: '100%', height: '100%' }} />
+
+            {isLoading && (
+                <div style={{
+                    position: 'absolute',
+                    top: '50%',
+                    left: '50%',
+                    transform: 'translate(-50%, -50%)',
+                    background: 'rgba(255,255,255,0.9)',
+                    padding: '15px 25px',
+                    borderRadius: '8px',
+                    boxShadow: '0 2px 10px rgba(0,0,0,0.1)',
+                    zIndex: 1000
+                }}>
+                    수유실 검색 중...
+                </div>
+            )}
+
+            {error && (
+                <div style={{
+                    position: 'absolute',
+                    bottom: '20px',
+                    left: '50%',
+                    transform: 'translateX(-50%)',
+                    background: '#ff6b6b',
+                    color: 'white',
+                    padding: '12px 20px',
+                    borderRadius: '8px',
+                    boxShadow: '0 2px 10px rgba(0,0,0,0.2)',
+                    zIndex: 1000,
+                    maxWidth: '80%',
+                    textAlign: 'center'
+                }}>
+                    {error}
+                </div>
+            )}
+
+            {locationDenied && (
+                <div style={{
+                    position: 'absolute',
+                    top: '10px',
+                    left: '50%',
+                    transform: 'translateX(-50%)',
+                    background: '#ffeaa7',
+                    color: '#2d3436',
+                    padding: '10px 15px',
+                    borderRadius: '8px',
+                    boxShadow: '0 2px 10px rgba(0,0,0,0.1)',
+                    zIndex: 1000,
+                    fontSize: '13px',
+                    maxWidth: '90%',
+                    textAlign: 'center'
+                }}>
+                    위치 권한이 거부되어 기본 위치(서울)로 표시됩니다.
+                </div>
+            )}
+
+            <a
+                href="/privacy"
+                style={{
+                    position: 'absolute',
+                    bottom: '10px',
+                    right: '10px',
+                    background: 'rgba(255,255,255,0.8)',
+                    color: '#666',
+                    padding: '5px 10px',
+                    borderRadius: '4px',
+                    fontSize: '11px',
+                    textDecoration: 'none',
+                    zIndex: 1000
+                }}
+            >
+                개인정보 처리방침
+            </a>
+        </div>
+    );
 }
