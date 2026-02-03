@@ -16,22 +16,32 @@ export const nursingRoomIcon = `data:image/svg+xml;charset=utf-8,${encodeURIComp
 </svg>
 `)}`;
 
-// 내 위치 마커 아이콘 (사람 모양)
+// 내 위치 마커 아이콘 (아기 모양)
 export const myLocationIcon = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(`
-<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32">
-  <!-- 외부 원 (펄스 효과용) -->
-  <circle cx="16" cy="16" r="14" fill="#4A90D9" opacity="0.2"/>
-  <!-- 중간 원 -->
-  <circle cx="16" cy="16" r="10" fill="#4A90D9" opacity="0.4"/>
-  <!-- 내부 원 -->
-  <circle cx="16" cy="16" r="6" fill="#4A90D9"/>
-  <!-- 중심점 -->
-  <circle cx="16" cy="16" r="3" fill="white"/>
+<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 40 40">
+  <!-- 배경 원 -->
+  <circle cx="20" cy="20" r="18" fill="#FFE4B5" stroke="#FFB347" stroke-width="2"/>
+  <!-- 얼굴 -->
+  <circle cx="20" cy="18" r="10" fill="#FFDBAC"/>
+  <!-- 머리카락 -->
+  <ellipse cx="20" cy="11" rx="8" ry="4" fill="#8B4513"/>
+  <circle cx="14" cy="10" r="2" fill="#8B4513"/>
+  <circle cx="26" cy="10" r="2" fill="#8B4513"/>
+  <!-- 볼터치 -->
+  <circle cx="13" cy="19" r="2" fill="#FFB6C1" opacity="0.6"/>
+  <circle cx="27" cy="19" r="2" fill="#FFB6C1" opacity="0.6"/>
+  <!-- 눈 -->
+  <circle cx="16" cy="17" r="1.5" fill="#333"/>
+  <circle cx="24" cy="17" r="1.5" fill="#333"/>
+  <!-- 입 -->
+  <path d="M17 22 Q20 25 23 22" stroke="#333" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+  <!-- 몸통 -->
+  <ellipse cx="20" cy="32" rx="8" ry="6" fill="#87CEEB"/>
 </svg>
 `)}`;
 
 // 마커 크기 설정
 export const MARKER_SIZE = {
     nursingRoom: { width: 36, height: 48 },
-    myLocation: { width: 32, height: 32 }
+    myLocation: { width: 40, height: 40 }
 };
