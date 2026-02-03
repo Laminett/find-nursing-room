@@ -2,6 +2,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { findClosetLocation } from '../utils/distance';
 import { calculateBounds, fitMapToBounds } from '../utils/map';
+import { nursingRoomIcon, myLocationIcon, MARKER_SIZE } from '../utils/markerIcons';
 import KakaoAdFit from '../components/KakaoAdFit';
 
 // 카카오 애드핏 광고 단위 ID
@@ -89,7 +90,14 @@ export default function Home() {
 
                 let marker = markerPoolRef.current[i];
                 if (!marker) {
-                    marker = new window.kakao.maps.Marker({ title: room.roomName });
+                    const markerImage = new window.kakao.maps.MarkerImage(
+                        nursingRoomIcon,
+                        new window.kakao.maps.Size(MARKER_SIZE.nursingRoom.width, MARKER_SIZE.nursingRoom.height)
+                    );
+                    marker = new window.kakao.maps.Marker({
+                        title: room.roomName,
+                        image: markerImage
+                    });
                     markerPoolRef.current[i] = marker;
                 }
 
@@ -184,16 +192,16 @@ export default function Home() {
                     minLevel: 7
                 });
 
-                const markerImage = new window.kakao.maps.MarkerImage(
-                    'https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/markerStar.png',
-                    new window.kakao.maps.Size(23, 35)
+                const myLocationMarkerImage = new window.kakao.maps.MarkerImage(
+                    myLocationIcon,
+                    new window.kakao.maps.Size(MARKER_SIZE.myLocation.width, MARKER_SIZE.myLocation.height)
                 );
 
                 new window.kakao.maps.Marker({
                     map,
                     position: new window.kakao.maps.LatLng(location.lat, location.lng),
                     title: '내 위치',
-                    image: markerImage
+                    image: myLocationMarkerImage
                 });
 
                 setMapLoaded(true);
