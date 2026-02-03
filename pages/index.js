@@ -5,7 +5,7 @@ import { calculateBounds, fitMapToBounds } from '../utils/map';
 import KakaoAdFit from '../components/KakaoAdFit';
 
 // 카카오 애드핏 광고 단위 ID
-const ADFIT_UNIT_ID = 'DAN-tQmah46I2udSDzw7';
+const ADFIT_UNIT_ID = 'DAN-M2uffRhPeDZn1Vnj';
 
 export default function Home() {
     const kakaoMapRef = useRef(null);
@@ -332,10 +332,10 @@ export default function Home() {
                 justifyContent: 'center',
                 alignItems: 'center',
                 background: '#f5f5f5',
-                padding: '10px 0',
+                padding: '5px 0',
                 borderTop: '1px solid #ddd'
             }}>
-                <KakaoAdFit unit={ADFIT_UNIT_ID} width={250} height={250} />
+                <KakaoAdFit unit={ADFIT_UNIT_ID} width={320} height={50} />
             </div>
         </div>
     );
