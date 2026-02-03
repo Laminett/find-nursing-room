@@ -116,17 +116,17 @@ export default function Home() {
                             </button>
                         </div>`;
 
+                    const mapInstance = kakaoMapRef.current?.__kakaoMapInstance;
+                    if (!mapInstance) return;
+
                     if (!infoWindowRef.current) {
                         infoWindowRef.current = new window.kakao.maps.InfoWindow({
-                            removable: true
+                            removable: true,
+                            yAnchor: 1.5
                         });
                     }
                     infoWindowRef.current.setContent(content);
-                    infoWindowRef.current.setPosition(new window.kakao.maps.LatLng(
-                        room.gpsLat + 0.0003,
-                        room.gpsLong
-                    ));
-                    infoWindowRef.current.open(map);
+                    infoWindowRef.current.open(mapInstance, marker);
                 };
 
                 window.kakao.maps.event.addListener(marker, 'click', clickListener);
