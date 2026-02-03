@@ -25,6 +25,7 @@ jspm_packages/
 
 # dotenv environment variables
 .env
+.env.local
 .env.*.local
 
 # Next.js / Nuxt.js or similar
