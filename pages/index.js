@@ -2,6 +2,10 @@
 import { useEffect, useRef, useState } from 'react';
 import { findClosetLocation } from '../utils/distance';
 import { calculateBounds, fitMapToBounds } from '../utils/map';
+import KakaoAdFit from '../components/KakaoAdFit';
+
+// 카카오 애드핏 광고 단위 ID
+const ADFIT_UNIT_ID = 'DAN-tQmah46I2udSDzw7';
 
 export default function Home() {
     const kakaoMapRef = useRef(null);
@@ -244,8 +248,9 @@ export default function Home() {
     }, []);
 
     return (
-        <div style={{ position: 'relative', width: '100%', height: '100dvh', minHeight: '-webkit-fill-available' }}>
-            <div ref={kakaoMapRef} style={{ width: '100%', height: '100%' }} />
+        <div style={{ display: 'flex', flexDirection: 'column', width: '100%', height: '100dvh', minHeight: '-webkit-fill-available' }}>
+            <div style={{ position: 'relative', flex: 1 }}>
+                <div ref={kakaoMapRef} style={{ width: '100%', height: '100%' }} />
 
             {isLoading && (
                 <div style={{
@@ -302,23 +307,36 @@ export default function Home() {
                 </div>
             )}
 
-            <a
-                href="/privacy"
-                style={{
-                    position: 'absolute',
-                    bottom: '10px',
-                    right: '10px',
-                    background: 'rgba(255,255,255,0.8)',
-                    color: '#666',
-                    padding: '5px 10px',
-                    borderRadius: '4px',
-                    fontSize: '11px',
-                    textDecoration: 'none',
-                    zIndex: 1000
-                }}
-            >
-                개인정보 처리방침
-            </a>
+                <a
+                    href="/privacy"
+                    style={{
+                        position: 'absolute',
+                        bottom: '10px',
+                        right: '10px',
+                        background: 'rgba(255,255,255,0.8)',
+                        color: '#666',
+                        padding: '5px 10px',
+                        borderRadius: '4px',
+                        fontSize: '11px',
+                        textDecoration: 'none',
+                        zIndex: 1000
+                    }}
+                >
+                    개인정보 처리방침
+                </a>
+            </div>
+
+            {/* 하단 광고 배너 */}
+            <div style={{
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+                background: '#f5f5f5',
+                padding: '10px 0',
+                borderTop: '1px solid #ddd'
+            }}>
+                <KakaoAdFit unit={ADFIT_UNIT_ID} width={250} height={250} />
+            </div>
         </div>
     );
 }
