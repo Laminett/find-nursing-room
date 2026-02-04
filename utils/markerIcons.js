@@ -40,8 +40,29 @@ export const myLocationIcon = `data:image/svg+xml;charset=utf-8,${encodeURICompo
 </svg>
 `)}`;
 
+// 선택된 수유실 마커 아이콘 (강조 표시)
+export const selectedNursingRoomIcon = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(`
+<svg xmlns="http://www.w3.org/2000/svg" width="44" height="58" viewBox="0 0 44 58">
+  <!-- 그림자 효과 -->
+  <ellipse cx="22" cy="54" rx="10" ry="4" fill="rgba(0,0,0,0.2)"/>
+  <!-- 핀 모양 배경 (더 진한 색상) -->
+  <path d="M22 0C10 0 0 10 0 22c0 17 22 36 22 36s22-19 22-36C44 10 34 0 22 0z" fill="#E91E63"/>
+  <path d="M22 2C11.5 2 2 11.5 2 22c0 15 20 32 20 32s20-17 20-32C42 11.5 32.5 2 22 2z" fill="#F06292"/>
+  <!-- 젖병 아이콘 -->
+  <g transform="translate(11, 10)">
+    <rect x="4" y="0" width="12" height="5" rx="1" fill="white"/>
+    <rect x="3" y="5" width="14" height="18" rx="2" fill="white"/>
+    <rect x="5" y="8" width="3" height="7" rx="1" fill="#E91E63" opacity="0.5"/>
+    <rect x="9" y="10" width="3" height="5" rx="1" fill="#E91E63" opacity="0.5"/>
+    <rect x="13" y="9" width="3" height="6" rx="1" fill="#E91E63" opacity="0.5"/>
+    <ellipse cx="10" cy="25" rx="5" ry="2" fill="white"/>
+  </g>
+</svg>
+`)}`;
+
 // 마커 크기 설정
 export const MARKER_SIZE = {
     nursingRoom: { width: 36, height: 48 },
+    selectedNursingRoom: { width: 44, height: 58 },
     myLocation: { width: 40, height: 40 }
 };

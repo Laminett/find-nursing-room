@@ -2,7 +2,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { findClosetLocation } from '../utils/distance';
 import { calculateBounds, fitMapToBounds } from '../utils/map';
-import { nursingRoomIcon, myLocationIcon, MARKER_SIZE } from '../utils/markerIcons';
+import { nursingRoomIcon, selectedNursingRoomIcon, myLocationIcon, MARKER_SIZE } from '../utils/markerIcons';
 import KakaoAdFit from '../components/KakaoAdFit';
 
 // 카카오 애드핏 광고 단위 ID
@@ -18,6 +18,7 @@ export default function Home() {
     const [selectedRoom, setSelectedRoom] = useState(null);
     const markerPoolRef = useRef([]);
     const markerListenersRef = useRef(new Set());
+    const selectedMarkerRef = useRef(null);
     const infoWindowRef = useRef(null);
     const clustererRef = useRef(null);
     const isFirstFetchRef = useRef(true);
@@ -107,6 +108,23 @@ export default function Home() {
                 bounds.extend(position);
 
                 const clickListener = () => {
+                    // 이전 선택된 마커 원래 아이콘으로 복원
+                    if (selectedMarkerRef.current) {
+                        const normalImage = new window.kakao.maps.MarkerImage(
+                            nursingRoomIcon,
+                            new window.kakao.maps.Size(MARKER_SIZE.nursingRoom.width, MARKER_SIZE.nursingRoom.height)
+                        );
+                        selectedMarkerRef.current.setImage(normalImage);
+                    }
+
+                    // 현재 마커 선택 아이콘으로 변경
+                    const selectedImage = new window.kakao.maps.MarkerImage(
+                        selectedNursingRoomIcon,
+                        new window.kakao.maps.Size(MARKER_SIZE.selectedNursingRoom.width, MARKER_SIZE.selectedNursingRoom.height)
+                    );
+                    marker.setImage(selectedImage);
+                    selectedMarkerRef.current = marker;
+
                     setSelectedRoom(room);
                 };
 
@@ -339,7 +357,18 @@ export default function Home() {
                             </p>
                         </div>
                         <button
-                            onClick={() => setSelectedRoom(null)}
+                            onClick={() => {
+                                // 선택된 마커 원래 아이콘으로 복원
+                                if (selectedMarkerRef.current) {
+                                    const normalImage = new window.kakao.maps.MarkerImage(
+                                        nursingRoomIcon,
+                                        new window.kakao.maps.Size(MARKER_SIZE.nursingRoom.width, MARKER_SIZE.nursingRoom.height)
+                                    );
+                                    selectedMarkerRef.current.setImage(normalImage);
+                                    selectedMarkerRef.current = null;
+                                }
+                                setSelectedRoom(null);
+                            }}
                             style={{
                                 background: 'none',
                                 border: 'none',
