@@ -100,6 +100,7 @@ export default function Home() {
                         title: room.roomName,
                         image: markerImage
                     });
+                    marker.setZIndex(1);
                     markerPoolRef.current[i] = marker;
                 }
 
@@ -115,6 +116,7 @@ export default function Home() {
                             new window.kakao.maps.Size(MARKER_SIZE.nursingRoom.width, MARKER_SIZE.nursingRoom.height)
                         );
                         selectedMarkerRef.current.setImage(normalImage);
+                        selectedMarkerRef.current.setZIndex(1);
                     }
 
                     // 현재 마커 선택 아이콘으로 변경
@@ -123,6 +125,7 @@ export default function Home() {
                         new window.kakao.maps.Size(MARKER_SIZE.selectedNursingRoom.width, MARKER_SIZE.selectedNursingRoom.height)
                     );
                     marker.setImage(selectedImage);
+                    marker.setZIndex(9999);
                     selectedMarkerRef.current = marker;
 
                     setSelectedRoom(room);
@@ -365,6 +368,7 @@ export default function Home() {
                                         new window.kakao.maps.Size(MARKER_SIZE.nursingRoom.width, MARKER_SIZE.nursingRoom.height)
                                     );
                                     selectedMarkerRef.current.setImage(normalImage);
+                                    selectedMarkerRef.current.setZIndex(1);
                                     selectedMarkerRef.current = null;
                                 }
                                 setSelectedRoom(null);
