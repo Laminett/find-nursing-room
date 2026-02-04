@@ -197,7 +197,14 @@ export default function Home() {
                 clustererRef.current = new window.kakao.maps.MarkerClusterer({
                     map,
                     averageCenter: true,
-                    minLevel: 7
+                    minLevel: 7,
+                    disableClickZoom: true
+                });
+
+                // 클러스터 클릭 시 확대 처리 (마커 클릭 이벤트 전파 방지)
+                window.kakao.maps.event.addListener(clustererRef.current, 'clusterclick', (cluster) => {
+                    const level = map.getLevel() - 2;
+                    map.setLevel(level, { anchor: cluster.getCenter() });
                 });
 
                 const myLocationMarkerImage = new window.kakao.maps.MarkerImage(
